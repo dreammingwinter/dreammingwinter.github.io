@@ -1,1 +1,130 @@
-Hello World
+<style>
+    #wrapper {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+    canvas {
+        width: 600px;
+        height: 600px;
+        border: 1px solid #000;
+    }
+    #wrapper::before, #wrapper::after {
+        display: block;
+        content: '';
+        background-color: #f00;
+        width: 100%;
+        height: 2px;
+        top: calc(50% - 1px);
+        left: 0;
+        position: absolute;
+        z-index: 2000;
+        pointer-events: none;
+    }
+    #wrapper::after {
+        transform: rotate(90deg);
+    }
+</style>
+<div id="wrapper">
+    <canvas width="600" height="600" id="canvas"></canvas>
+</div>
+<script>
+    (() => {
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('2d')
+
+        const sizes_2 = {
+            w: canvas.width/2,
+            h: canvas.height/2
+        }
+
+        function Point() {
+            this.x = 0
+            this.y = 0
+        }
+
+        const point = new Point()
+        const tmppoint = new Point()
+        const offset = new Point()
+
+        let downed = false
+        let quadrant
+
+        canvas.addEventListener('mousedown', e => {
+            downed = true
+            point.x = e.offsetX
+            point.y = e.offsetY
+            ctx.beginPath()
+        })
+        window.addEventListener('mouseup', () => {
+            ctx.closePath()
+            downed = false
+        })
+        canvas.addEventListener('mousemove', async e => {
+            if (!downed) { return }
+            tmppoint.x = point.x
+            tmppoint.y = point.y
+            ctx.moveTo(tmppoint.x, tmppoint.y)
+            point.x = e.offsetX
+            point.y = e.offsetY
+            ctx.lineTo(point.x, point.y)
+            ctx.stroke()
+            quadrant = detectQuadrant(point.x, point.y)
+
+            if (quadrant !== 1) {
+                offset.x = (tmppoint.x < sizes_2.w ? canvas.width - tmppoint.x : tmppoint.x)
+                offset.y = (tmppoint.y < sizes_2.h ? tmppoint.y : canvas.height - tmppoint.y)
+                ctx.moveTo(offset.x, offset.y)
+
+                offset.x = (point.x < sizes_2.w ? canvas.width - point.x : point.x)
+                offset.y = (point.y < sizes_2.h ? point.y : canvas.height - point.y)
+                ctx.lineTo(offset.x, offset.y)
+                ctx.stroke()
+            }
+            if (quadrant !== 2) {
+                offset.x = (tmppoint.x < sizes_2.w ? tmppoint.x : canvas.width - tmppoint.x)
+                offset.y = (tmppoint.y < sizes_2.h ? tmppoint.y : canvas.height - tmppoint.y)
+                ctx.moveTo(offset.x, offset.y)
+
+                offset.x = (point.x < sizes_2.w ? point.x : canvas.width - point.x)
+                offset.y = (point.y < sizes_2.h ? point.y : canvas.height - point.y)
+                ctx.lineTo(offset.x, offset.y)
+                ctx.stroke()
+            }
+            if (quadrant !== 3) {
+                offset.x = (tmppoint.x < sizes_2.w ? tmppoint.x : canvas.width - tmppoint.x)
+                offset.y = (tmppoint.y < sizes_2.h ? canvas.height - tmppoint.y : tmppoint.y)
+                ctx.moveTo(offset.x, offset.y)
+
+                offset.x = (point.x < sizes_2.w ? point.x : canvas.width - point.x)
+                offset.y = (point.y < sizes_2.h ? canvas.height - point.y : point.y)
+                ctx.lineTo(offset.x, offset.y)
+                ctx.stroke()
+            }
+            if (quadrant !== 4) {
+                offset.x = (tmppoint.x < sizes_2.w ? canvas.width - tmppoint.x : tmppoint.x)
+                offset.y = (tmppoint.y < sizes_2.h ? canvas.height - tmppoint.y : tmppoint.y)
+                ctx.moveTo(offset.x, offset.y)
+                
+                offset.x = (point.x < sizes_2.w ? canvas.width - point.x : point.x)
+                offset.y = (point.y < sizes_2.h ? canvas.height - point.y : point.y)
+                ctx.lineTo(offset.x, offset.y)
+                ctx.stroke()
+            }
+        }, { passive: true })
+
+        function detectQuadrant(x, y) {
+            if (y < sizes_2.h) {
+                if (x > sizes_2.w) {
+                    return 1
+                }
+                return 2
+            }
+            if (x < sizes_2.w) {
+                return 3
+            }
+            return 4
+        }
+    })()
+</script>
